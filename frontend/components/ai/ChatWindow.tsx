@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import ChatMessage from "./ChatMessage";
 import { useChat } from "@/hooks/useChat";
+import { ArrowUp } from "lucide-react";
 
 const DEFAULT_QUESTIONS = [
   {
@@ -70,7 +71,7 @@ export default function ChatWindow() {
   };
 
   return (
-    <div className="relative w-full bg-[#f8f7f3] dark:bg-[#171716]">
+    <div className="relative flex h-full min-h-0 w-full flex-col bg-transparent">
 
       {/* =========================================================
           PAGE CONTENT
@@ -80,16 +81,18 @@ export default function ChatWindow() {
           The browser owns scrolling.
       ========================================================= */}
 
-      <main className="w-full">
+      <main className="min-h-0 flex-1 overflow-y-auto">
 
         <div
           className="
             mx-auto
+            flex
+            min-h-full
             w-full
             max-w-5xl
+            flex-col
             px-5
-            pb-44
-            pt-8
+            py-8
             sm:px-8
             lg:px-10
           "
@@ -101,7 +104,7 @@ export default function ChatWindow() {
                EMPTY STATE
             ===================================================== */
 
-            <section className="flex min-h-[calc(100vh-150px)] items-center">
+            <section className="flex min-h-full flex-1 items-center">
 
               <div className="mx-auto w-full max-w-3xl">
 
@@ -109,11 +112,11 @@ export default function ChatWindow() {
 
                 <div className="mb-5 flex items-center gap-2">
 
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#242321] text-xs font-semibold text-white dark:bg-[#f1eee7] dark:text-[#242321]">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#1e150e] text-xs font-semibold text-[#ede2cd] shadow-sm dark:bg-[#f1eee7] dark:text-[#242321]">
                     H
                   </div>
 
-                  <span className="text-xs font-medium uppercase tracking-[0.16em] text-black/40 dark:text-white/35">
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#1e3a8a] dark:text-white/50">
                     HR365 Assistant
                   </span>
 
@@ -125,9 +128,9 @@ export default function ChatWindow() {
                   className="
                     max-w-3xl
                     text-4xl
-                    font-medium
-                    tracking-[-0.055em]
-                    text-[#242321]
+                    font-bold
+                    tracking-[-0.04em]
+                    text-[#14100b]
                     sm:text-5xl
                     lg:text-[56px]
                     lg:leading-[1.04]
@@ -137,7 +140,7 @@ export default function ChatWindow() {
                   How can I help you today?
                 </h1>
 
-                <p className="mt-5 max-w-2xl text-[15px] leading-7 text-black/45 dark:text-white/40">
+                <p className="mt-5 max-w-2xl text-[15px] leading-7 text-[#4e4030] dark:text-white/60">
                   Ask about company policies, attendance, leave,
                   HR requests, benefits, or your employee information.
                 </p>
@@ -156,15 +159,18 @@ export default function ChatWindow() {
                         group
                         rounded-2xl
                         border
-                        border-black/[0.08]
-                        bg-white
+                        border-[#ceba94]/80
+                        bg-[#ede2cd]/90
                         p-5
                         text-left
+                        shadow-[0_8px_30px_rgba(0,0,0,0.06)]
+                        backdrop-blur-md
                         transition-all
                         duration-200
                         hover:-translate-y-0.5
-                        hover:border-black/[0.14]
-                        hover:shadow-[0_12px_35px_rgba(0,0,0,0.06)]
+                        hover:border-[#b89f72]
+                        hover:bg-[#e6d8c0]
+                        hover:shadow-[0_12px_35px_rgba(0,0,0,0.10)]
                         active:translate-y-0
                         disabled:cursor-not-allowed
                         disabled:opacity-60
@@ -177,11 +183,11 @@ export default function ChatWindow() {
                       <div className="flex items-start justify-between gap-4">
 
                         <div>
-                          <p className="text-sm font-semibold tracking-[-0.01em] text-[#242321] dark:text-[#f1eee7]">
+                          <p className="text-sm font-semibold tracking-[-0.01em] text-[#14100b] dark:text-[#f1eee7]">
                             {item.title}
                           </p>
 
-                          <p className="mt-1.5 text-xs leading-5 text-black/40 dark:text-white/35">
+                          <p className="mt-1.5 text-xs leading-5 text-[#554837] dark:text-white/45">
                             {item.description}
                           </p>
                         </div>
@@ -197,11 +203,13 @@ export default function ChatWindow() {
                             justify-center
                             rounded-full
                             border
-                            border-black/[0.08]
+                            border-[#ceba94]
                             text-sm
-                            text-black/35
+                            text-[#554837]
                             transition-transform
                             group-hover:translate-x-0.5
+                            group-hover:border-[#14100b]
+                            group-hover:text-[#14100b]
                             dark:border-white/[0.08]
                             dark:text-white/35
                           "
@@ -215,7 +223,7 @@ export default function ChatWindow() {
 
                 </div>
 
-                <p className="mt-6 text-center text-[11px] text-black/25 dark:text-white/20">
+                <p className="mt-6 text-center text-[11px] text-[#6e5d47] dark:text-white/30">
                   You can also type your own question below.
                 </p>
 
@@ -229,7 +237,7 @@ export default function ChatWindow() {
                CONVERSATION
             ===================================================== */
 
-            <section className="mx-auto max-w-4xl space-y-8">
+            <section className="mx-auto flex w-full max-w-4xl flex-1 flex-col space-y-8">
 
               {messages.map((message) => (
                 <ChatMessage
@@ -277,52 +285,39 @@ export default function ChatWindow() {
 
       {/* =========================================================
           FIXED AI COMPOSER
-
-          This is NOT a scroll container.
-          It is fixed to the viewport.
       ========================================================= */}
 
       <div
         className="
-            sticky
-            bottom-0
+            shrink-0
             z-30
             border-t
-            border-black/[0.06]
-            bg-[#f8f7f3]/90
+            border-[var(--border)]
+            bg-[var(--surface)]/90
             px-4
             pb-4
             pt-3
-            backdrop-blur-xl
-            dark:border-white/[0.06]
-            dark:bg-[#171716]/90
+            backdrop-blur-2xl
             sm:px-6
         "
-    >
-
+      >
         <div className="mx-auto w-full max-w-4xl">
-
           <form onSubmit={handleSubmit}>
-
             <div
               className="
                 relative
                 overflow-hidden
-                rounded-[20px]
+                rounded-2xl
                 border
-                border-black/[0.09]
-                bg-white
-                shadow-[0_8px_35px_rgba(0,0,0,0.07)]
+                border-[var(--border)]
+                bg-[var(--surface-solid)]
+                shadow-lg
                 transition-all
-                focus-within:border-black/[0.16]
-                focus-within:shadow-[0_10px_40px_rgba(0,0,0,0.10)]
-                dark:border-white/[0.09]
-                dark:bg-[#22211f]
-                dark:shadow-none
-                dark:focus-within:border-white/[0.16]
+                focus-within:border-[var(--accent-blue)]
+                focus-within:ring-2
+                focus-within:ring-[var(--accent-blue)]/20
               "
             >
-
               <textarea
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
@@ -332,9 +327,7 @@ export default function ChatWindow() {
                     !event.shiftKey
                   ) {
                     event.preventDefault();
-
                     if (!input.trim() || loading) return;
-
                     submitQuestion(input);
                   }
                 }}
@@ -352,10 +345,10 @@ export default function ChatWindow() {
                   pr-16
                   text-[14px]
                   leading-6
+                  text-[var(--foreground)]
                   outline-none
-                  placeholder:text-black/30
+                  placeholder:text-[var(--muted)]
                   disabled:cursor-not-allowed
-                  dark:placeholder:text-white/25
                 "
               />
 
@@ -365,7 +358,7 @@ export default function ChatWindow() {
                 aria-label="Send message"
                 className="
                   absolute
-                  bottom-3
+                  bottom-2.5
                   right-3
                   flex
                   h-9
@@ -373,38 +366,33 @@ export default function ChatWindow() {
                   items-center
                   justify-center
                   rounded-xl
-                  bg-[#242321]
+                  bg-gradient-to-r
+                  from-blue-600
+                  to-indigo-600
                   text-white
+                  shadow-md
                   transition-all
-                  hover:scale-[1.04]
+                  hover:scale-105
+                  hover:shadow-lg
                   active:scale-95
                   disabled:cursor-not-allowed
-                  disabled:opacity-25
-                  dark:bg-[#f1eee7]
-                  dark:text-[#242321]
+                  disabled:opacity-35
+                  disabled:hover:scale-100
+                  dark:from-blue-500
+                  dark:to-indigo-500
                 "
               >
-                ↑
+                <ArrowUp size={18} />
               </button>
-
             </div>
 
-            <div className="mt-2 flex items-center justify-between px-1">
-              <span className="text-[10px] text-black/25 dark:text-white/20">
-                HR365 AI Assistant
-              </span>
-
-              <span className="text-[10px] text-black/25 dark:text-white/20">
-                Enter to send · Shift + Enter for new line
-              </span>
+            <div className="mt-2.5 flex items-center justify-between px-1 text-xs text-[var(--muted)]">
+              <span>HR365 AI Assistant</span>
+              <span>Enter to send · Shift + Enter for new line</span>
             </div>
-
           </form>
-
         </div>
-
       </div>
-
     </div>
   );
 }

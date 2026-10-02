@@ -2,57 +2,41 @@
 
 import { useEffect, useState } from "react";
 
-type Theme = "light" | "dark";
+export type Theme = "light" | "dark";
 
 const STORAGE_KEY = "hr365-theme";
 
 export function useTheme() {
-  const [theme, setTheme] =
-    useState<Theme>("light");
+  const [theme, setThemeState] = useState<Theme>("dark");
 
   useEffect(() => {
-    const saved = localStorage.getItem(
-      STORAGE_KEY,
-    ) as Theme | null;
+    const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
+    const initialTheme = saved === "dark" || saved === "light" ? saved : "dark";
 
-    const initialTheme =
-      saved === "dark" || saved === "light"
-        ? saved
-        : window.matchMedia(
-            "(prefers-color-scheme: dark)",
-          ).matches
-          ? "dark"
-          : "light";
-
-    setTheme(initialTheme);
-
-    document.documentElement.classList.toggle(
-      "dark",
-      initialTheme === "dark",
-    );
+    setThemeState(initialTheme);
+    applyTheme(initialTheme);
   }, []);
 
+  const applyTheme = (t: Theme) => {
+    document.documentElement.classList.toggle("dark", t === "dark");
+    document.documentElement.classList.toggle("light", t === "light");
+    document.documentElement.setAttribute("data-theme", t);
+  };
+
+  const setTheme = (next: Theme) => {
+    setThemeState(next);
+    localStorage.setItem(STORAGE_KEY, next);
+    applyTheme(next);
+  };
+
   const toggleTheme = () => {
-    setTheme((current) => {
-      const next =
-        current === "light" ? "dark" : "light";
-
-      localStorage.setItem(
-        STORAGE_KEY,
-        next,
-      );
-
-      document.documentElement.classList.toggle(
-        "dark",
-        next === "dark",
-      );
-
-      return next;
-    });
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
   };
 
   return {
     theme,
     toggleTheme,
+    setTheme,
   };
 }

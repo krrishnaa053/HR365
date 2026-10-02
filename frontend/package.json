@@ -1,18 +1,19 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
+  "name": "hr365-frontend",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.117.2",
-    "framer-motion": "^13.4.4",
+    "@supabase/supabase-js": "^2.45.0",
+    "axios": "^1.7.7",
+    "framer-motion": "^11.5.4",
     "lenis": "^1.3.26",
-    "lucide-react": "^1.48.0",
+    "lucide-react": "^0.468.0",
     "next": "16.3.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -21,11 +22,10 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^22",
     "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.6",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

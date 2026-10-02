@@ -1,34 +1,9 @@
-"use client";
-
-interface HRStatsProps {
+type HRStatsProps = {
   pendingLeaves: number;
   openRequests: number;
   escalatedRequests: number;
   urgentRequests: number;
-}
-
-const stats = [
-  {
-    key: "pendingLeaves",
-    label: "Pending leave",
-    description: "Awaiting HR review",
-  },
-  {
-    key: "openRequests",
-    label: "Open requests",
-    description: "Need HR attention",
-  },
-  {
-    key: "escalatedRequests",
-    label: "Escalated",
-    description: "Require human review",
-  },
-  {
-    key: "urgentRequests",
-    label: "Urgent",
-    description: "High-priority queue",
-  },
-] as const;
+};
 
 export default function HRStats({
   pendingLeaves,
@@ -36,29 +11,31 @@ export default function HRStats({
   escalatedRequests,
   urgentRequests,
 }: HRStatsProps) {
-  const values = {
-    pendingLeaves,
-    openRequests,
-    escalatedRequests,
-    urgentRequests,
-  };
+  const stats = [
+    {
+      title: "Pending Leaves",
+      value: String(pendingLeaves),
+    },
+    {
+      title: "Open Requests",
+      value: String(openRequests),
+    },
+    {
+      title: "Escalated Requests",
+      value: String(escalatedRequests),
+    },
+    {
+      title: "Urgent Requests",
+      value: String(urgentRequests),
+    },
+  ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {stats.map((stat) => (
-        <div
-          key={stat.key}
-          className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 transition-all duration-200 hover:border-[var(--accent)]/30 hover:shadow-sm"
-        >
-          <div className="text-sm text-[var(--muted)]">{stat.label}</div>
-
-          <div className="mt-3 text-3xl font-semibold tracking-tight text-[var(--foreground)]">
-            {values[stat.key]}
-          </div>
-
-          <div className="mt-2 text-xs text-[var(--muted)]">
-            {stat.description}
-          </div>
+    <div className="grid gap-6 md:grid-cols-4">
+      {stats.map((item) => (
+        <div key={item.title} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
+          <p className="text-sm text-[var(--muted)]">{item.title}</p>
+          <h2 className="mt-3 text-4xl font-bold tracking-tight">{item.value}</h2>
         </div>
       ))}
     </div>

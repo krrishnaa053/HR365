@@ -1,81 +1,157 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #f7f6f2;
-  --foreground: #1f1f1c;
-
-  --surface: #ffffff;
-  --surface-hover: #f0efeb;
-
-  --border: #e4e2dc;
-  --muted: #77766f;
-
-  --accent: #5b5bd6;
-
-  --sidebar: #191918;
-  --sidebar-foreground: #f5f5f0;
-  --sidebar-muted: #96958d;
-  --sidebar-active: #2a2a28;
-  --sidebar-hover: #242422;
+  color-scheme: dark;
+  --background: #080e18;
+  --foreground: #f1f5f9;
+  --surface: rgba(15, 23, 42, 0.70);
+  --surface-solid: #0f172a;
+  --surface-hover: rgba(30, 41, 59, 0.65);
+  --border: rgba(148, 163, 184, 0.16);
+  --muted: #94a3b8;
+  --accent: #91a994;
+  --accent-blue: #60a5fa;
+  --nav-active-bg: rgba(145, 169, 148, 0.20);
+  --nav-active-border: rgba(145, 169, 148, 0.50);
+  --nav-active-text: #e6f4e8;
+  --nav-active-glow: 0 0 16px rgba(145, 169, 148, 0.22);
+  --sidebar: #080f18;
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-muted: #7b8995;
+  --header-bg: rgba(8, 15, 24, 0.70);
+  --header-border: rgba(255, 255, 255, 0.12);
+  --header-text: #ffffff;
+  --wave-fill-back: rgba(235, 219, 192, 0.45);
+  --wave-fill-front: rgba(242, 228, 203, 0.85);
 }
 
-.dark {
-  --background: #191918;
-  --foreground: #eeeee9;
-
-  --surface: #222220;
-  --surface-hover: #2a2a27;
-
-  --border: #343431;
-  --muted: #a1a19a;
-
-  --accent: #8b8be8;
-
-  --sidebar: #111110;
-  --sidebar-foreground: #f5f5f0;
-  --sidebar-muted: #85857e;
-  --sidebar-active: #282825;
-  --sidebar-hover: #22221f;
+:root.light {
+  color-scheme: light;
+  --background: #d6cab5;
+  --foreground: #120e0a;
+  --surface: rgba(244, 237, 225, 0.94);
+  --surface-solid: #ebe0cb;
+  --surface-hover: rgba(222, 211, 193, 0.96);
+  --border: rgba(182, 166, 140, 0.85);
+  --muted: #483a2a;
+  --accent: #1e3a8a;
+  --accent-blue: #0284c7;
+  --nav-active-bg: rgba(30, 58, 138, 0.14);
+  --nav-active-border: rgba(30, 58, 138, 0.40);
+  --nav-active-text: #1e3a8a;
+  --nav-active-glow: 0 2px 14px rgba(30, 58, 138, 0.16);
+  --sidebar: #d0c3ae;
+  --sidebar-foreground: #120e0a;
+  --sidebar-muted: #483a2a;
+  --header-bg: rgba(238, 230, 216, 0.95);
+  --header-border: rgba(182, 166, 140, 0.85);
+  --header-text: #120e0a;
+  --wave-fill-back: rgba(230, 214, 186, 0.50);
+  --wave-fill-front: rgba(238, 223, 196, 0.90);
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
 html {
-  scroll-behavior: auto;
+  scroll-behavior: smooth;
 }
 
 body {
-  margin: 0;
   background: var(--background);
   color: var(--foreground);
-
-  font-family:
-    Inter,
-    ui-sans-serif,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-
-  font-weight: 400;
-  letter-spacing: -0.008em;
-
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-
-  transition:
-    background-color 300ms ease,
-    color 300ms ease;
 }
 
-h1,
-h2,
-h3,
-h4 {
-  font-weight: 500;
-  letter-spacing: -0.035em;
+.card {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  padding: 24px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+@keyframes login-float-one {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-8deg);
+  }
+
+  50% {
+    transform: translateY(-14px) rotate(-3deg);
+  }
+}
+
+@keyframes login-float-two {
+  0%,
+  100% {
+    transform: translateY(0) rotate(7deg);
+  }
+
+  50% {
+    transform: translateY(-18px) rotate(2deg);
+  }
+}
+
+@keyframes login-float-three {
+  0%,
+  100% {
+    transform: translateY(0) rotate(5deg);
+  }
+
+  50% {
+    transform: translateY(-12px) rotate(10deg);
+  }
+}
+
+@keyframes login-float-four {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+
+  50% {
+    transform: translateY(-16px) rotate(3deg);
+  }
+}
+
+.login-float-one {
+  animation: login-float-one 6.5s ease-in-out infinite;
+}
+
+.login-float-two {
+  animation: login-float-two 7.5s ease-in-out infinite 0.6s;
+}
+
+.login-float-three {
+  animation: login-float-three 8s ease-in-out infinite 1.1s;
+}
+
+.login-float-four {
+  animation: login-float-four 7s ease-in-out infinite 0.9s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-float-one,
+  .login-float-two,
+  .login-float-three,
+  .login-float-four {
+    animation: none;
+  }
 }
 
 button,
@@ -89,46 +165,100 @@ button {
   cursor: pointer;
 }
 
-::selection {
-  background: var(--foreground);
-  color: var(--background);
-}
-
-/* Premium scrollbar */
-
-::-webkit-scrollbar {
-  width: 7px;
-}
-
-::-webkit-scrollbar-track {
+.app-shell {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
   background: transparent;
+  color: var(--foreground);
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 999px;
+.app-shell::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background-image:
+    linear-gradient(to bottom, rgba(6, 12, 20, 0.5), rgba(10, 18, 32, 0.82) 480px, #0a1220 900px),
+    url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop");
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
+  content: "";
+  pointer-events: none;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--muted);
+:root.light .app-shell::before {
+  background-image:
+    linear-gradient(to bottom, rgba(228, 218, 203, 0.92), rgba(216, 204, 186, 0.95) 480px, #cbbca6 920px),
+    url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop");
 }
 
-:root {
-  --background: #f7f6f2;
-  --foreground: #171717;
-  --surface: #ffffff;
-  --surface-hover: #f0efeb;
-  --border: rgba(23, 23, 23, 0.1);
-  --muted: #737373;
-  --accent: #d97757;
+
+
+.app-shell .bg-white {
+  background-color: var(--surface-solid);
 }
 
-.dark {
-  --background: #111110;
-  --foreground: #f4f3ef;
-  --surface: #191918;
-  --surface-hover: #242422;
-  --border: rgba(255, 255, 255, 0.1);
-  --muted: #a5a5a0;
-  --accent: #e38a68;
+.app-shell .bg-gray-50 {
+  background-color: var(--surface-hover);
+}
+
+.app-shell .border-gray-200 {
+  border-color: var(--border);
+}
+
+.app-shell .text-gray-900 {
+  color: var(--foreground);
+}
+
+.app-shell .text-gray-700,
+.app-shell .text-gray-600,
+.app-shell .text-gray-500 {
+  color: var(--muted);
+}
+
+/* =========================================================
+   Login Dashboard Animated Waves
+   ========================================================= */
+@keyframes wave-slide-left {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes wave-slide-right {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wave-pulse-gentle {
+  0%, 100% {
+    opacity: 0.85;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1.08);
+  }
+}
+
+.animate-wave-back {
+  animation: wave-slide-left 22s linear infinite;
+  will-change: transform;
+}
+
+.animate-wave-front {
+  animation: wave-slide-right 14s linear infinite;
+  will-change: transform;
+}
+
+.animate-wave-pulse {
+  animation: wave-pulse-gentle 6s ease-in-out infinite;
 }

@@ -1,146 +1,84 @@
-"use client";
-
-import { supabase } from "@/lib/supabase";
+﻿import { supabase } from "@/lib/supabase";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
   "http://localhost:8000";
 
-let cachedAccessToken: string | null = null;
-let authListenerInitialized = false;
-let refreshPromise: Promise<string | null> | null = null;
-
-function initializeAuthCache() {
-  if (authListenerInitialized) {
-    return;
-  }
-
-  authListenerInitialized = true;
-
-  supabase.auth.onAuthStateChange(
-    (_event, session) => {
-      cachedAccessToken =
-        session?.access_token ?? null;
-    },
-  );
-}
-
-async function getAccessToken(): Promise<string | null> {
-  initializeAuthCache();
-
-  if (cachedAccessToken) {
-    return cachedAccessToken;
-  }
-
+export async function apiFetch<T = any>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> {
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  cachedAccessToken =
-    session?.access_token ?? null;
+  const headers = new Headers(options.headers || {});
 
-  return cachedAccessToken;
-}
-
-async function refreshAccessToken(): Promise<string | null> {
-  if (refreshPromise) {
-    return refreshPromise;
+  if (session?.access_token) {
+    headers.set("Authorization", `Bearer ${session.access_token}`);
   }
 
-  refreshPromise = (async () => {
-    try {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.refreshSession();
-
-      if (error || !session?.access_token) {
-        cachedAccessToken = null;
-        return null;
-      }
-
-      cachedAccessToken =
-        session.access_token;
-
-      return session.access_token;
-    } finally {
-      refreshPromise = null;
-    }
-  })();
-
-  return refreshPromise;
-}
-
-async function performRequest(
-  endpoint: string,
-  options: RequestInit,
-  token: string | null,
-) {
-  const headers = new Headers(
-    options.headers,
-  );
-
-  headers.set(
-    "Content-Type",
-    "application/json",
-  );
-
-  if (token) {
-    headers.set(
-      "Authorization",
-      `Bearer ${token}`,
-    );
+  if (!headers.has("Content-Type") && !(options.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
   }
 
-  return fetch(
-    `${API_URL}${endpoint}`,
-    {
-      ...options,
-      headers,
-    },
-  );
-}
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
 
-export async function apiFetch<T>(
-  endpoint: string,
-  options: RequestInit = {},
-): Promise<T> {
-  let token = await getAccessToken();
+  let payload: any = null;
 
-  let response = await performRequest(
-    endpoint,
-    options,
-    token,
-  );
-
-  if (response.status === 401) {
-    token = await refreshAccessToken();
-
-    if (token) {
-      response = await performRequest(
-        endpoint,
-        options,
-        token,
-      );
-    }
+  try {
+    payload = await response.json();
+  } catch {
+    payload = await response.text();
   }
 
   if (!response.ok) {
-    let message =
-      "Something went wrong.";
+    const detail =
+      typeof payload === "string"
+        ? payload
+        : payload?.detail || payload?.message || "API Error";
 
-    try {
-      const data =
-        await response.json();
-
-      message =
-        data.detail || message;
-    } catch {
-      // Keep generic message.
-    }
-
-    throw new Error(message);
+    throw new Error(detail || "API Error");
   }
 
-  return response.json();
+  return payload as T;
 }
+
+export const api = {
+  askHR: async (question: string) => {
+    return apiFetch("/api/ask", {
+      method: "POST",
+      body: JSON.stringify({ question }),
+    });
+  },
+
+  getEmployees: async () => {
+    return apiFetch("/api/employees", { method: "GET" });
+  },
+
+  getLeaves: async () => {
+    return apiFetch("/api/leaves", { method: "GET" });
+  },
+
+  applyLeave: async (data: any) => {
+    return apiFetch("/api/leaves", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateLeaveStatus: async (id: string, status: string) => {
+    return apiFetch(`/api/leaves/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  approveLeave: async (id: string, status: string) => {
+    return api.updateLeaveStatus(id, status);
+  },
+};

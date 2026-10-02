@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { RefreshCw } from "lucide-react";
 
 import AppShell from "@/components/layout/AppShell";
 import PageTransition from "@/components/ui/PageTransition";
@@ -24,9 +25,11 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function loadAttendance() {
-      try {
+  async function loadAttendance() {
+    setLoading(true);
+    setError("");
+
+    try {
         const [summaryResponse, recordsResponse] =
           await Promise.all([
             apiFetch<{
@@ -40,18 +43,19 @@ export default function AttendancePage() {
 
         setSummary(summaryResponse.summary);
         setRecords(recordsResponse.records || []);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Unable to load attendance."
-        );
-      } finally {
-        setLoading(false);
-      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load attendance.",
+      );
+    } finally {
+      setLoading(false);
     }
+  }
 
-    loadAttendance();
+  useEffect(() => {
+    void loadAttendance();
   }, []);
 
   return (
@@ -76,8 +80,18 @@ export default function AttendancePage() {
           {loading ? (
             <AttendanceSkeleton />
           ) : error ? (
-            <div className="mt-10 rounded-2xl border border-red-500/20 bg-red-500/5 p-6 text-sm text-red-600">
-              {error}
+            <div className="mt-10 flex flex-col gap-4 rounded-2xl border border-red-400/20 bg-red-400/[0.06] p-6 sm:flex-row sm:items-center sm:justify-between">
+              <p role="alert" className="text-sm text-red-300">
+                {error}
+              </p>
+              <button
+                type="button"
+                onClick={() => void loadAttendance()}
+                className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-white/[0.05]"
+              >
+                <RefreshCw size={15} />
+                Try again
+              </button>
             </div>
           ) : summary ? (
             <>

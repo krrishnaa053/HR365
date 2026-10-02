@@ -69,16 +69,16 @@ export default function LeaveTable({
                   className="border-b border-[var(--border)] last:border-0"
                 >
                   <td className="px-6 py-4 text-sm capitalize">
-                    {leave.leave_type}
+                    {leave.leave_type ?? leave.type ?? "Leave"}
                   </td>
 
                   <td className="px-6 py-4 text-sm text-[var(--muted)]">
-                    {leave.start_date} → {leave.end_date}
+                    {(leave.start_date ?? leave.startDate) ?? "—"} → {(leave.end_date ?? leave.endDate) ?? "—"}
                   </td>
 
                   <td className="max-w-xs px-6 py-4 text-sm text-[var(--muted)]">
                     <span className="line-clamp-1">
-                      {leave.reason || "—"}
+                      {leave.reason ?? "—"}
                     </span>
                   </td>
 

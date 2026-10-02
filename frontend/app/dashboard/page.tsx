@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -55,10 +55,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  async function loadDashboard() {
+  const loadDashboard = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
+
+      if (!profile) {
+        throw new Error("Sign in to view your HR dashboard.");
+      }
 
       const [
         attendanceResponse,
@@ -117,8 +121,6 @@ export default function DashboardPage() {
 
       setRequests(requestRecords);
     } catch (err) {
-      console.error("Unable to load dashboard:", err);
-
       setError(
         err instanceof Error
           ? err.message
@@ -127,11 +129,21 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [profile]);
 
   useEffect(() => {
-    loadDashboard();
-  }, []);
+    if (profileLoading) {
+      return;
+    }
+
+    if (!profile) {
+      setLoading(false);
+      setError("Sign in to view your HR dashboard.");
+      return;
+    }
+
+    void loadDashboard();
+  }, [loadDashboard, profile, profileLoading]);
 
   const activities = useMemo<Activity[]>(() => {
     return requests
@@ -181,14 +193,15 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <PageTransition>
-        <main className="min-h-screen">
-          <div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10">
+        <div className="relative min-h-[calc(100vh-76px)]">
+          <div className="relative z-10 mx-auto max-w-[1400px] px-5 py-8 sm:px-8 lg:px-10">
             {isLoading ? (
               <DashboardSkeleton />
             ) : error ? (
               <DashboardError
                 message={error}
                 onRetry={loadDashboard}
+                loginRequired={!profile}
               />
             ) : (
               <>
@@ -196,28 +209,28 @@ export default function DashboardPage() {
                     HEADER
                 ================================================= */}
 
-                <section className="flex flex-col justify-between gap-7 md:flex-row md:items-end">
+                <section className="flex flex-col justify-between gap-7 pb-4 md:flex-row md:items-end">
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--muted)]">
-                      {today}
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--accent)]">
+                      HR365 · {today}
                     </p>
 
-                    <h1 className="mt-3 text-4xl font-medium tracking-[-0.05em] sm:text-5xl">
-                      {getGreeting()}, {firstName}.
+                    <h1 className="mt-3 text-4xl font-bold leading-tight tracking-tight text-[var(--foreground)] drop-shadow-md sm:text-5xl lg:text-6xl">
+                      {getGreeting()},{" "}
+                      <span className="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-blue)] bg-clip-text text-transparent">
+                        {firstName}.
+                      </span>
                     </h1>
 
-                    <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[var(--muted)]">
-                      Here&apos;s a quick look at your HR
-                      workspace and the things that may
+                    <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[var(--muted)]">
+                      Here&apos;s a quick look at your HR workspace and the things that may
                       need your attention.
                     </p>
 
                     {profile?.designation && (
                       <p className="mt-2 text-xs text-[var(--muted)]">
                         {profile.designation}
-                        {profile.department
-                          ? ` · ${profile.department}`
-                          : ""}
+                        {profile.department ? ` · ${profile.department}` : ""}
                       </p>
                     )}
                   </div>
@@ -225,11 +238,11 @@ export default function DashboardPage() {
                   <Magnetic strength={0.12}>
                     <Link
                       href="/assistant"
-                      className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--foreground)] px-5 py-3 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-85"
+                      className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-5 py-3 text-sm font-semibold text-[var(--foreground)] shadow-lg backdrop-blur-xl transition hover:border-[var(--accent)] hover:bg-[var(--surface-hover)] hover:-translate-y-0.5 active:scale-95"
                     >
-                      <Sparkles size={15} />
+                      <Sparkles size={16} className="text-[var(--accent)]" />
                       Ask HR365
-                      <ArrowUpRight size={15} />
+                      <ArrowUpRight size={15} className="text-[var(--muted)]" />
                     </Link>
                   </Magnetic>
                 </section>
@@ -238,13 +251,11 @@ export default function DashboardPage() {
                     STATS
                 ================================================= */}
 
-                <section className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--border)] sm:grid-cols-2 xl:grid-cols-4">
+                <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   <Stat
                     icon={<CalendarDays size={18} />}
                     label="Attendance"
-                    value={`${formatNumber(
-                      data?.attendance ?? 0,
-                    )}%`}
+                    value={`${formatNumber(data?.attendance ?? 0)}%`}
                     description="Current attendance"
                   />
 
@@ -279,36 +290,32 @@ export default function DashboardPage() {
                 ================================================= */}
 
                 <section className="mt-8 grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
-                  {/* AI */}
-
-                  <div className="relative overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8 lg:p-10">
-                    <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[var(--accent)] opacity-[0.06] blur-3xl" />
-
+                  {/* AI Assistant Card */}
+                  <div className="relative overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--surface)] p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.18)] backdrop-blur-2xl lg:p-10 transition-colors">
                     <div className="relative">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--foreground)] text-[var(--background)]">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-hover)] text-[var(--accent-blue)]">
                         <Bot size={20} />
                       </div>
 
-                      <p className="mt-8 text-xs font-medium uppercase tracking-[0.16em] text-[var(--muted)]">
+                      <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-[var(--accent)]">
                         HR365 Intelligence
                       </p>
 
-                      <h2 className="mt-3 max-w-xl text-3xl font-medium tracking-[-0.04em] sm:text-4xl">
+                      <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl">
                         Your HR questions,
                         <br />
                         answered instantly.
                       </h2>
 
                       <p className="mt-4 max-w-lg text-sm leading-7 text-[var(--muted)]">
-                        Ask about policies, leave,
-                        attendance, benefits, or your
-                        personal HR information.
+                        Ask about policies, leave, attendance, benefits, or your personal HR
+                        information.
                       </p>
 
                       <Magnetic strength={0.1}>
                         <Link
                           href="/assistant"
-                          className="mt-8 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-5 py-3 text-sm font-medium transition hover:border-[var(--foreground)]"
+                          className="mt-8 inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-blue-500 hover:-translate-y-0.5 active:scale-95"
                         >
                           Open AI Assistant
                           <ArrowUpRight size={15} />
@@ -317,12 +324,11 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Activity */}
-
-                  <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-7">
+                  {/* Activity Card */}
+                  <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface)] p-7 text-[var(--foreground)] shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.18)] backdrop-blur-2xl transition-colors">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-sm font-medium">
+                        <p className="text-sm font-semibold text-[var(--foreground)]">
                           Recent activity
                         </p>
 
@@ -333,7 +339,7 @@ export default function DashboardPage() {
 
                       <Link
                         href="/requests"
-                        className="text-xs text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                        className="text-xs font-medium text-[var(--muted)] transition hover:text-[var(--foreground)]"
                       >
                         View all
                       </Link>
@@ -343,10 +349,7 @@ export default function DashboardPage() {
                       {activities.length > 0 ? (
                         <div className="space-y-6">
                           {activities.map((activity) => (
-                            <Activity
-                              key={activity.id}
-                              {...activity}
-                            />
+                            <Activity key={activity.id} {...activity} />
                           ))}
                         </div>
                       ) : (
@@ -360,10 +363,10 @@ export default function DashboardPage() {
                     REQUEST OVERVIEW
                 ================================================= */}
 
-                <section className="mt-8 overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface)]">
+                <section className="mt-8 overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--surface-solid)] shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
                   <div className="flex items-center justify-between border-b border-[var(--border)] px-7 py-6">
                     <div>
-                      <p className="text-sm font-medium">
+                      <p className="text-sm font-semibold text-[var(--foreground)]">
                         Request overview
                       </p>
 
@@ -374,7 +377,7 @@ export default function DashboardPage() {
 
                     <Link
                       href="/requests"
-                      className="inline-flex items-center gap-1 text-xs text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-[var(--muted)] transition hover:text-[var(--foreground)]"
                     >
                       All requests
                       <ArrowUpRight size={13} />
@@ -384,10 +387,7 @@ export default function DashboardPage() {
                   {recentRequests.length > 0 ? (
                     <div className="divide-y divide-[var(--border)]">
                       {recentRequests.map((request) => (
-                        <RequestRow
-                          key={request.id}
-                          request={request}
-                        />
+                        <RequestRow key={request.id} request={request} />
                       ))}
                     </div>
                   ) : (
@@ -397,13 +397,12 @@ export default function DashboardPage() {
                         className="mx-auto text-[var(--muted)]"
                       />
 
-                      <p className="mt-3 text-sm font-medium">
+                      <p className="mt-3 text-sm font-medium text-[var(--foreground)]">
                         No HR requests yet
                       </p>
 
                       <p className="mt-1 text-xs text-[var(--muted)]">
-                        Your submitted requests will appear
-                        here.
+                        Your submitted requests will appear here.
                       </p>
                     </div>
                   )}
@@ -415,7 +414,7 @@ export default function DashboardPage() {
 
                 <section className="mt-8">
                   <div className="mb-4">
-                    <p className="text-sm font-medium">
+                    <p className="text-sm font-semibold text-[var(--foreground)]">
                       Quick actions
                     </p>
 
@@ -450,7 +449,7 @@ export default function DashboardPage() {
               </>
             )}
           </div>
-        </main>
+        </div>
       </PageTransition>
     </AppShell>
   );
@@ -472,16 +471,17 @@ function Stat({
   description: string;
 }) {
   return (
-    <div className="bg-[var(--surface)] p-6 transition-colors hover:bg-[var(--surface-hover)]">
+    <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface)] p-6 text-[var(--foreground)] shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.18)] backdrop-blur-2xl transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:shadow-md">
       <div className="flex items-center gap-3 text-[var(--muted)]">
-        {icon}
-
-        <span className="text-xs font-medium uppercase tracking-[0.12em]">
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--surface-hover)] text-[var(--accent-blue)]">
+          {icon}
+        </span>
+        <span className="text-xs font-semibold uppercase tracking-[0.12em]">
           {label}
         </span>
       </div>
 
-      <p className="mt-7 text-3xl font-medium tracking-[-0.04em]">
+      <p className="mt-6 text-3xl font-bold tracking-tight text-[var(--foreground)]">
         {value}
       </p>
 
@@ -511,23 +511,21 @@ function Activity({
       <div
         className={[
           "mt-1.5 h-2 w-2 shrink-0 rounded-full",
-          completed
-            ? "bg-emerald-500"
-            : "bg-[var(--accent)]",
+          completed ? "bg-emerald-500" : "bg-[var(--accent)]",
         ].join(" ")}
       />
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">
+        <p className="truncate text-sm font-medium text-[var(--foreground)]">
           {title}
         </p>
 
-        <p className="mt-1 text-xs text-[var(--muted)]">
+        <p className="mt-0.5 text-xs text-[var(--muted)]">
           {description}
         </p>
       </div>
 
-      <span className="shrink-0 text-[10px] text-[var(--muted)]">
+      <span className="shrink-0 text-[11px] text-[var(--muted)]">
         {time}
       </span>
     </div>
@@ -560,7 +558,7 @@ function RequestRow({
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">
+        <p className="truncate text-sm font-medium text-[var(--foreground)]">
           {request.subject || "HR request"}
         </p>
 
@@ -607,14 +605,14 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--foreground)]"
+      className="group flex items-center gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--foreground)] shadow-sm"
     >
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface-hover)] text-[var(--foreground)] transition group-hover:bg-[var(--foreground)] group-hover:text-[var(--background)]">
         {icon}
       </div>
 
       <div>
-        <p className="text-sm font-medium">
+        <p className="text-sm font-medium text-[var(--foreground)]">
           {title}
         </p>
 
@@ -637,13 +635,13 @@ function QuickAction({
 
 function EmptyActivity() {
   return (
-    <div className="rounded-2xl border border-dashed border-[var(--border)] px-5 py-10 text-center">
+    <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-hover)] px-5 py-10 text-center">
       <MessageSquareText
         size={20}
         className="mx-auto text-[var(--muted)]"
       />
 
-      <p className="mt-3 text-sm font-medium">
+      <p className="mt-3 text-sm font-medium text-[var(--foreground)]">
         No recent activity
       </p>
 
@@ -653,7 +651,7 @@ function EmptyActivity() {
 
       <Link
         href="/requests"
-        className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[var(--foreground)] hover:underline"
+        className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[var(--accent)] hover:underline"
       >
         View requests
         <ArrowUpRight size={12} />
@@ -669,18 +667,20 @@ function EmptyActivity() {
 function DashboardError({
   message,
   onRetry,
+  loginRequired,
 }: {
   message: string;
   onRetry: () => void;
+  loginRequired: boolean;
 }) {
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8 text-center">
+      <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8 text-center shadow-lg">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-600">
           <RefreshCw size={20} />
         </div>
 
-        <h2 className="mt-5 text-lg font-medium">
+        <h2 className="mt-5 text-lg font-medium text-[var(--foreground)]">
           Unable to load your dashboard
         </h2>
 
@@ -688,14 +688,23 @@ function DashboardError({
           {message}
         </p>
 
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-[var(--foreground)] px-5 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-85"
-        >
-          <RefreshCw size={14} />
-          Try again
-        </button>
+        {loginRequired ? (
+          <Link
+            href="/login"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[var(--foreground)] px-5 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-85"
+          >
+            Sign in
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void onRetry()}
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[var(--foreground)] px-5 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-85"
+          >
+            <RefreshCw size={14} />
+            Try again
+          </button>
+        )}
       </div>
     </div>
   );

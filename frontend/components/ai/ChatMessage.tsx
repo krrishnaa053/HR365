@@ -18,14 +18,14 @@ export default function ChatMessage({ message }: Props) {
       <div
         className={
           isUser
-            ? "max-w-[80%] rounded-2xl rounded-br-md bg-[#242321] px-5 py-3.5 text-sm leading-7 text-white dark:bg-[#f1eee7] dark:text-[#242321]"
-            : "w-full max-w-4xl"
+            ? "max-w-[80%] rounded-2xl rounded-tr-sm bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3.5 text-sm leading-relaxed text-white shadow-lg"
+            : "w-full max-w-4xl rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-7 shadow-xl backdrop-blur-2xl"
         }
       >
         {isUser ? (
           <p className="whitespace-pre-wrap">{message.content}</p>
         ) : (
-          <div className="hr365-markdown text-[15px] leading-7 text-black/80 dark:text-white/80">
+          <div className="hr365-markdown text-[15px] leading-7 text-[var(--foreground)]">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
@@ -150,41 +150,32 @@ export default function ChatMessage({ message }: Props) {
 
         {/* AI metadata */}
         {!isUser && response && (
-          <div className="mt-6 space-y-4">
+          <div className="mt-6 space-y-4 border-t border-[var(--border)] pt-5">
             {/* Confidence */}
             {response.confidence && (
-              <div className="flex items-center gap-2 text-xs text-black/45 dark:text-white/40">
-                <span className="font-medium">
-                  Confidence
-                </span>
-
-                <span className="capitalize">
-                  {response.confidence.level}
-                </span>
-
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/10 px-3.5 py-1 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                <span>Confidence {response.confidence.level}</span>
                 <span>·</span>
-
-                <span>
-                  {Math.round(response.confidence.score * 100)}%
-                </span>
+                <span>{Math.round(response.confidence.score * 100)}%</span>
               </div>
             )}
 
             {/* Escalation */}
             {response.escalation_required && (
-              <div className="rounded-xl border border-[#d97757]/20 bg-[#d97757]/[0.06] px-4 py-3 text-sm">
-                <p className="font-medium text-[#b85c3e]">
+              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm">
+                <p className="font-semibold text-amber-700 dark:text-amber-300">
                   HR review required
                 </p>
 
                 {response.escalation_reason && (
-                  <p className="mt-1 text-xs leading-5 text-black/55 dark:text-white/50">
+                  <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
                     {response.escalation_reason}
                   </p>
                 )}
 
                 {response.hr_ticket_id && (
-                  <p className="mt-2 text-xs text-black/45 dark:text-white/40">
+                  <p className="mt-2 text-xs font-medium text-[var(--foreground)]">
                     Ticket: {response.hr_ticket_id}
                   </p>
                 )}
@@ -193,24 +184,32 @@ export default function ChatMessage({ message }: Props) {
 
             {/* Sources */}
             {response.sources?.length > 0 && (
-              <details className="group">
-                <summary className="cursor-pointer text-xs font-medium text-black/45 transition-colors hover:text-black/70 dark:text-white/40 dark:hover:text-white/70">
-                  {response.sources.length} source
-                  {response.sources.length !== 1 ? "s" : ""}
+              <details className="group rounded-2xl border border-[var(--border)] bg-[var(--surface-hover)] p-3.5 transition-all">
+                <summary className="flex cursor-pointer select-none items-center justify-between text-xs font-semibold text-[var(--foreground)]">
+                  <span className="flex items-center gap-1.5">
+                    <span>📄</span>
+                    <span>
+                      {response.sources.length} source
+                      {response.sources.length !== 1 ? "s" : ""} referenced
+                    </span>
+                  </span>
+                  <span className="text-xs text-[var(--muted)] transition-transform group-open:rotate-180">
+                    ▼
+                  </span>
                 </summary>
 
-                <div className="mt-3 space-y-2">
+                <div className="mt-3 space-y-2 border-t border-[var(--border)] pt-3">
                   {response.sources.map((source, index) => (
                     <div
                       key={`${source.source ?? source.filename ?? "source"}-${index}`}
-                      className="rounded-lg border border-black/[0.06] bg-black/[0.02] px-3 py-2.5 text-xs dark:border-white/[0.06] dark:bg-white/[0.02]"
+                      className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-xs"
                     >
-                      <div className="font-medium text-black/70 dark:text-white/70">
-                        {source.source ?? source.filename ?? "Reference"}
+                      <div className="font-semibold text-[var(--foreground)]">
+                        {source.source ?? source.filename ?? "Reference Document"}
                       </div>
 
                       {typeof source.score === "number" && (
-                        <div className="mt-1 text-black/40 dark:text-white/35">
+                        <div className="mt-1 text-xs text-[var(--muted)]">
                           Relevance: {Math.round(source.score * 100)}%
                         </div>
                       )}
@@ -222,7 +221,7 @@ export default function ChatMessage({ message }: Props) {
 
             {/* Feedback */}
             <FeedbackButtons
-            message={message}
+              message={message}
             />
           </div>
         )}

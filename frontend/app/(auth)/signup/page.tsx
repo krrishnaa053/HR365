@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -14,30 +14,83 @@ export default function SignupPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [confirmationPending, setConfirmationPending] = useState(false);
 
   async function handleSignup(event: FormEvent) {
     event.preventDefault();
 
     setLoading(true);
     setError("");
+    setMessage("");
+    setConfirmationPending(false);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-      },
-    });
-
-    if (error) {
-      setError(error.message);
+    if (!isSupabaseConfigured) {
+      setError(
+        "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in frontend/.env.local, then restart the frontend.",
+      );
       setLoading(false);
       return;
     }
 
-    router.push("/dashboard");
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data.session) {
+        setConfirmationPending(true);
+        setMessage("Confirmation email sent. Open the link in this browser to finish signup.");
+        return;
+      }
+
+      router.push("/dashboard");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Unable to create your account.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resendConfirmation() {
+    setLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setMessage("Another confirmation email was sent. Check your inbox and spam folder.");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Unable to resend the confirmation email.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -107,6 +160,23 @@ export default function SignupPage() {
             <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
               {error}
             </div>
+          )}
+
+          {message && (
+            <p role="status" className="rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-700">
+              {message}
+            </p>
+          )}
+
+          {confirmationPending && (
+            <button
+              type="button"
+              onClick={() => void resendConfirmation()}
+              disabled={loading}
+              className="text-sm font-medium text-blue-600 hover:underline disabled:opacity-60"
+            >
+              Resend confirmation email
+            </button>
           )}
 
           <button

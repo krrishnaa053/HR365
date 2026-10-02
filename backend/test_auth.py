@@ -1,27 +1,33 @@
 import os
 
 from dotenv import load_dotenv
-from supabase import create_client
-
 
 load_dotenv()
 
+try:
+    from supabase import create_client
+except ImportError as exc:
+    raise RuntimeError(
+        "The 'supabase' package is not installed. Run: python -m pip install -r requirements.txt"
+    ) from exc
 
 url = os.getenv("SUPABASE_URL")
 key = os.getenv("SUPABASE_KEY")
 
-supabase = create_client(url, key)
+if not url or not key:
+    raise RuntimeError(
+        "Missing SUPABASE_URL or SUPABASE_KEY in your environment/.env file."
+    )
 
+supabase = create_client(url, key)
 
 email = input("Email: ")
 password = input("Password: ")
-
 
 response = supabase.auth.sign_in_with_password({
     "email": email,
     "password": password,
 })
-
 
 session = response.session
 
